@@ -19,5 +19,12 @@ def collect_log(parse):
     
 def disable_unused_port(parse):
     port = parse.find_objects(r"service port")[0]
-    
-    return port.children[0]
+    port_status = port.re_list_iter_typed("port\S* ([on|off]+)")
+    count_on = port_status.count("on")
+    count_off = port_status.count("off")
+    port_on = [p.text for p in port.children if re.search("(\S+ port\S*) on", p.text)]
+    port_off = [p.text for p in port.children if re.search("(\S+ port\S*) off", p.text)]
+    if len(port_status) > 1 and count_on == 1 and count_off > 1:
+        return port_on ,port_off
+    else:
+        return port_status, count_on ,count_off
