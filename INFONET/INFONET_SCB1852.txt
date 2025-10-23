@@ -248,7 +248,6 @@ access-list mac input permit 00:01:2e:61:69:37
 access-list mac input deny any
 access-list mac forward deny any
 access-list mac forward permit 00:01:2e:61:69:37
-access-list mac forward permit 00:07:32:9b:e2:39
 !
 !
 !

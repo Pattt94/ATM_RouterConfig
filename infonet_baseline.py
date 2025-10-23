@@ -24,10 +24,11 @@ def disable_unused_port(parse):
     count_off = port_status.count("off")
     port_on = [p.text for p in port.children if re.search(r"(\S+ port\S*) on", p.text)]
     port_off = [p.text for p in port.children if re.search(r"(\S+ port\S*) off", p.text)]
+
     if len(port_status) > 1 and count_on == 1 and count_off > 1:
-        return port_on ,port_off
+        return port_on[0]
     else:
-        return port_status, count_on ,count_off
+        return port_on, port_off
     
 def access_control(parse):
     acl_list = parse.find_objects(r"^access-list mac")
@@ -35,9 +36,43 @@ def access_control(parse):
     mac_address = [i.re_list_iter_typed(mac_address_format)[0] for i in acl_list if i.re_list_iter_typed(mac_address_format) != []]
     mac_input = [i.re_list_iter_typed(r"input (\S+.+)")[0] for i in acl_list if i.re_list_iter_typed(r"input (\S+.+)") != []]
     mac_forward = [i.re_list_iter_typed(r"forward (\S+.+)")[0] for i in acl_list if i.re_list_iter_typed(r"forward (\S+.+)") != []]
+
+    if all(x == mac_address[0] for x in mac_address) and "deny any" in mac_input and "deny any" in mac_forward:
+        return f"{mac_address[0]} is permitted."
+    else:
+        return mac_address, f"{mac_address[0]} is NOT permitted."
+
+def session_timeout(parse):
+    retry = parse.find_child_objects(['line vty', r'fail-timeout 3'])
+    if retry != []:
+        return retry[0]
+    else:
+        return "No session-timeout"
     
-    for i in range(len(mac_address) - 1):
-        if mac_address[i] == mac_address[i+1]:
-            print(mac_address, f"{mac_address[i]} and {mac_address[i+1]} is same MAC address.")
-        else:
-            print(mac_address, f"{mac_address[i]} and {mac_address[i+1]} is NOT same MAC address.")
+def snmp_shutdown(parse):
+    snmp = parse.find_child_objects(["service snmp", "shutdown"])
+    if snmp != []:
+        return snmp[0]
+    else:
+        return "SNMP is not shutdown"
+    
+def syslog_shutdown(parse):
+    syslog = parse.find_child_objects(["service syslog", "shutdown"])
+    if syslog != []:
+        return syslog[0]
+    else:
+        return "syslog is not shutdown"
+    
+def dhcp_shutdown(parse):
+    dhcp = parse.find_child_objects(["service dhcp", "shutdown"])
+    if dhcp != []:
+        return dhcp[0]
+    else:
+        return "DHCP is not shutdown"
+    
+def sync_time(parse):
+    ntp = parse.find_child_objects(["service ntp", "time zone bangkok"])
+    if ntp != []:
+        return ntp[0]
+    else:
+        return "Time is not BKK timezone"

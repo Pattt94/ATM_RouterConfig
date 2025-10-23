@@ -9,8 +9,8 @@ try:
         file_path = os.path.join(directory_path, filename)
         if os.path.isfile(file_path):  # Check if it's actually a file
             parse = CiscoConfParse(file_path)
-            # print(filename)
-            print(access_control(parse))
+            print(filename)
+            print(sync_timea(parse))
 
 except Exception as e:
     print(f"An error occurred: {e}")
