@@ -19,12 +19,25 @@ def collect_log(parse):
     
 def disable_unused_port(parse):
     port = parse.find_objects(r"service port")[0]
-    port_status = port.re_list_iter_typed("port\S* ([on|off]+)")
+    port_status = port.re_list_iter_typed(r"port\S* ([on|off]+)")
     count_on = port_status.count("on")
     count_off = port_status.count("off")
-    port_on = [p.text for p in port.children if re.search("(\S+ port\S*) on", p.text)]
-    port_off = [p.text for p in port.children if re.search("(\S+ port\S*) off", p.text)]
+    port_on = [p.text for p in port.children if re.search(r"(\S+ port\S*) on", p.text)]
+    port_off = [p.text for p in port.children if re.search(r"(\S+ port\S*) off", p.text)]
     if len(port_status) > 1 and count_on == 1 and count_off > 1:
         return port_on ,port_off
     else:
         return port_status, count_on ,count_off
+    
+def access_control(parse):
+    acl_list = parse.find_objects(r"^access-list mac")
+    mac_address_format = "(([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2}))|(([0-9A-Fa-f]{4}[.]){2}[0-9A-Fa-f]{4})"
+    mac_address = [i.re_list_iter_typed(mac_address_format)[0] for i in acl_list if i.re_list_iter_typed(mac_address_format) != []]
+    mac_input = [i.re_list_iter_typed(r"input (\S+.+)")[0] for i in acl_list if i.re_list_iter_typed(r"input (\S+.+)") != []]
+    mac_forward = [i.re_list_iter_typed(r"forward (\S+.+)")[0] for i in acl_list if i.re_list_iter_typed(r"forward (\S+.+)") != []]
+    
+    for i in range(len(mac_address) - 1):
+        if mac_address[i] == mac_address[i+1]:
+            print(mac_address, f"{mac_address[i]} and {mac_address[i+1]} is same MAC address.")
+        else:
+            print(mac_address, f"{mac_address[i]} and {mac_address[i+1]} is NOT same MAC address.")
